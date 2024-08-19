@@ -9,12 +9,6 @@ using namespace std;
 
 void dfs(vector<vector<int>> &graph, set<int> &visited, set<int> &recStack, int node, bool &hasCycle)
 {
-	printf("visited: ");
-	for (auto it = visited.begin(); it != visited.end(); it++)
-	{
-		cout << *it << " ";
-	}
-	printf("\n");
 	if (recStack.find(node) != recStack.end())
 	{
 		hasCycle = true;
@@ -29,6 +23,8 @@ void dfs(vector<vector<int>> &graph, set<int> &visited, set<int> &recStack, int 
 	for (int i = 0; i < graph[node].size(); i++)
 	{
 		dfs(graph, visited, recStack, graph[node][i], hasCycle);
+		if (hasCycle)
+			return;
 	}
 	recStack.erase(node);
 }
@@ -36,74 +32,84 @@ void dfs(vector<vector<int>> &graph, set<int> &visited, set<int> &recStack, int 
 bool canFinish(int numCourses, vector<vector<int>> &prerequisites)
 {
 	vector<vector<int>> graph(numCourses);
-	set<int> visited;
-	set<int> recStack;
-	bool hasCycle = false;
-	printf("prerequisites.size() = %d\n", prerequisites.size());
 	for (int i = 0; i < prerequisites.size(); i++)
 	{
 		graph[prerequisites[i][0]].push_back(prerequisites[i][1]);
 	}
-	for(int i = 0; i<numCourses;i++){
-		if(visited.find(i) == visited.end()){
-			dfs(graph, visited, recStack, i, hasCycle);
-			if (hasCycle){
-				return false;
-			}
+
+	printf("\nGraph: \n");
+	for (int i = 0; i < numCourses; i++)
+	{
+		cout << i << ": ";
+		for (int j = 0; j < graph[i].size(); j++)
+		{
+			cout << graph[i][j] << " ";
+		}
+		cout << endl;
+	}
+
+	// Cycle Detection using DFS
+	// set<int> visited;
+	// set<int> recStack;
+	// bool hasCycle = false;
+
+	// for (int i = 0; i < numCourses; i++)
+	// {
+	// 	if (visited.find(i) == visited.end())
+	// 	{
+	// 		dfs(graph, visited, recStack, i, hasCycle);
+	// 		if (hasCycle)
+	// 			return false;
+	// 	}
+	// }
+
+	// return true;
+
+
+	// Topological Sort
+	vector<int> indegree(numCourses,0);
+	for(int i=0;i<numCourses;i++){
+		for(int j=0;j<graph[i].size();j++){
+			indegree[graph[i][j]]++;
 		}
 	}
 
-	// printf("visited.size() = %d\n", visited.size());
+	printf("\nIndegree: ");
+	for(auto it: indegree){
+		cout << it << " ";
+	}
 
-	// for (int i = 0; i < graph.size(); i++)
-	// {
-	// 	printf("graph[%d]: ", i);
-	// 	for (int j = 0; j < graph[i].size(); j++)
-	// 	{
-	// 		cout << graph[i][j] << " ";
-	// 	}
-	// 	cout << endl;
-	// }
+	queue<int> q;
+	for(int i=0;i<numCourses;i++){
+		if (indegree[i] == 0){
+			q.push(i);
+		}
+	}
 
-	return true;
+	vector<int> topo;
+	while(!q.empty()){
+		int node = q.front();
+		q.pop();
+		topo.push_back(node);
 
-	//Topological Sort
-	// vector<int> indegree(numCourses,0);
+		for(auto it: graph[node]){
+			indegree[it]--;
+			if (indegree[it]==0) q.push(it);
+		}
+	}
 
-	// for(int i=0;i<numCourses;i++){
-	// 	for(int j=0;j<graph[i].size();j++){
-	// 		indegree[graph[i][j]]++;
-	// 	}
-	// }
-	// queue<int> q;
-	// for(int i=0;i<numCourses;i++){
-	// 	if (indegree[i] == 0){
-	// 		q.push(i);
-	// 	}
-	// }
-	// vector<int> topo;
+	printf("\nTopo: ");
+	for(auto it: topo){
+		cout << it << " ";
+	}
 
-	// while(!q.empty()){
-	// 	int node = q.front();
-	// 	q.pop();
-	// 	topo.push_back(node);
-
-	// 	for(auto it: graph[node]){
-	// 		indegree[it]--;
-	// 		if (indegree[it]==0) q.push(it);
-	// 	}
-	// }
-
-	// return (topo.size() == numCourses);
-
-
-	
+	return (topo.size() == numCourses);
 }
 
 int main()
 {
 	int numCourses = 2;
-	vector<vector<int>> prerequisites = {{0, 1}, {1,0}};
+	vector<vector<int>> prerequisites = {{0, 1}, {1, 0}};
 	cout << canFinish(numCourses, prerequisites) << endl;
 	return 0;
 }
